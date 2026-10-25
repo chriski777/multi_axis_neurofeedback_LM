@@ -15,7 +15,7 @@ In this work, we give the model **multiple axis-based labels** per example and a
 
 2. **Across layers:** Can the model report and control activations along the same axis type at two depths (e.g., the LR axis at an early layer and a later layer) independently?
 
-We found that the model can report labels derived from [distinct axes within the same layer](#fig-reporting-within) or from [axes of the same type across different layers](#fig-reporting-across) with performance comparable to reporting each label individually.
+We found that the model can report labels derived from [distinct axes within the same layer](#fig-reporting-within) or from [axes of the same type across different layers](#fig-reporting-across) with performance comparable to reporting each label individually. We also found that the model could control its activations along [two distinct axes within the same layer](#control-task-within-layer) with performance comparable to single-axis control under some instructions, but showed reduced control performance when controlling [axes of the same type across different layers](#fig-control-across).
 
 ## Table of Contents
 
@@ -27,7 +27,8 @@ We found that the model can report labels derived from [distinct axes within the
 - [Results](#results)
   - [Reporting Task: Within-layer](#reporting-task-within-layer)
   - [Reporting Task: Across-layer](#reporting-task-across-layer)
-  - [Control Task](#control-task-1)
+  - [Control Task: Within-layer](#control-task-within-layer)
+  - [Control Task: Across-layer](#control-task-across-layer)
 
 ## Methods
 
@@ -98,7 +99,7 @@ Although all labels appear in the prompt, the model's prediction for each label 
 
 ### Control Task
 
-Each trial draws 200 held-out sentences at random (independently from the [reporting task](#reporting-task) draws) and builds a prompt in the same format as the reporting task, followed by a final user turn that specifies a **target score** and instructs the model to generate a sentence. We consider the same two settings (single-axis and two-axes).
+Each trial draws 200 held-out sentences at random (independently from the [reporting task](#reporting-task) draws) and builds a prompt in the same format as the reporting task, followed by a final user turn that specifies a **target score** and instructs the model to generate a sentence that imitates the target score. We consider the same two settings (single-axis and two-axes).
 
 The prompt follows the structure below for the single-axis setting:
 ```
@@ -116,7 +117,7 @@ User: <instruction to produce a sentence with Score: {target}> Say something.
 Assistant: ← model generates here
 ```
 
-In the two-axes setting, the final instruction specifies both target scores, e.g. `Score X: 1, Score Y: 0`.
+In the two-axes setting, the final instruction specifies both target scores to imitate, e.g. `Score X: 1, Score Y: 0`.
 
 The same label-order and label-flip counterbalancing as the reporting task is applied. For each task condition, we generate 100 trials, each consisting of 200 sampled sentences from the held-out set. Each trial therefore yields two prompts in the single-axis setting (two flips) and four prompts in the two-axis setting (two score orderings × two flips).
 
@@ -159,14 +160,16 @@ In the across-layer reporting task, reporting performance was similar between th
 
 ### Control Task: Within-Layer
 
-In the within-layer control task,
+In the within-layer control task, explicit control performance varied between the single-axis and two-axis settings for both layer 13 PC1 and PC2 ([Fig. 3](#fig-control-within), top row). Compared with the single-axis setting (blue bars), control effect sizes were smaller when the other axis was instructed to imitate 0 (orange bars), but generally more comparable when the other axis was instructed to imitate 1 (green bars). Performance also varied depending on whether the target axis was instructed first (solid bars) or second (hatched bars), without a consistent effect of instruction order. Implicit control performance was comparable between the single-axis and two-axis settings, although effect sizes were relatively small across both ([Fig. 3](#fig-control-within), bottom row). Taken together, these results suggest that the model can control activations along two distinct axes within the same layer with performance comparable to controlling each axis individually under some instructions, but not others.
 
 <a id="fig-control-within"></a>
 ![Control task results for L13 PC1 and PC2](figures/control_d_L13_PC1+PC2.png)
-<em><b>Fig. 3. Within-layer control p. </b> </em>
+<em><b>Fig. 3.  Within-layer control performance is comparable between the single-axis and two-axis settings under some instructions, but not others. </b>  Each column of subplots shows control performance for a target axis derived from layer 13 PC1 (left) or PC2 (right). Bars show Cohen's d between activation projections when the target axis is instructed to imitate 1 versus 0, for explicit (top) and implicit (bottom) control. Bars represent the single-axis setting (blue) and the two-axis setting with the other axis instructed to imitate 0 (orange) or 1 (green). In the two-axis setting, solid bars indicate that the target axis is instructed first, while hatched bars indicate that it is instructed second. Error bars indicate 95% confidence intervals. </em>
 
 ### Control Task: Across-Layer
 
+In the across-layer control task, explicit control performance was lower in the two-axes setting (Fig. 4, orange and green bars) than in the single-axis setting (Fig. 4, blue bars) for both layer 6 and layer 20 LR axes ([Fig. 4](#fig-control-across), top row). This reduction was observed regardless of whether the target axis was instructed first (solid bars) or second (hatched bars), or whether the other axis was instructed to imitate 0 (orange) or 1 (green). Implicit control performance was substantially weaker than explicit control across both settings ([Fig. 4](#fig-control-across), bottom row), particularly at layer 6, where control effects were near zero. This is consistent with the original study, which found that implicit control effects were especially weak in earlier layers. Taken together, these results suggest that the model's ability to control activations along LR axes across different layers is reduced when instructed to control both axes simultaneously, particularly during explicit control.
+
 <a id="fig-control-across"></a>
 ![Control task results for L6 LR and L20 LR](figures/control_d_LR_L6+L20.png)
-<em><b>Fig. 4. Across-layer control p. </b> </em>
+<em><b>Fig. 4. Across-layer control performance is lower in the two-axis setting than in the single-axis setting. </b> Each column of subplots shows control performance for a target axis derived from layer 6 LR (left) or layer 20 LR (right). Bars show Cohen's d between activation projections when the target axis is instructed to imitate 1 versus 0, for explicit (top) and implicit (bottom) control. Bars represent the single-axis setting (blue) and the two-axis setting with the other axis instructed to imitate 0 (orange) or 1 (green). In the two-axis setting, solid bars indicate that the target axis is instructed first, while hatched bars indicate that it is instructed second. Error bars indicate 95% confidence intervals.  </em>

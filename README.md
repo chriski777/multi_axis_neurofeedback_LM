@@ -5,15 +5,15 @@ by **[Chris Ki](https://chriski.me)**
 
 ## Overview
 
-This repository extends Ji-An et al. (2025), ([*Language Models Are Capable of Metacognitive Monitoring and Control of Their Internal Activations*](https://proceedings.neurips.cc/paper_files/paper/2025/file/56a225639da77e8f7c0409f6d5ba996b-Paper-Conference.pdf?ref=gatodo.com)), to test whether LLMs can report and control their activations along **multiple axes simultaneously**.
+This repository extends Li et al. (2025), *[Language Models Are Capable of Metacognitive Monitoring and Control of Their Internal Activations](https://proceedings.neurips.cc/paper_files/paper/2025/file/56a225639da77e8f7c0409f6d5ba996b-Paper-Conference.pdf)* (NeurIPS 2025), to test whether LLMs can report and control their activations along **multiple axes simultaneously**..
 
 Ji-An et al. showed that LLMs can use in-context examples and learn to report and control their activations along some directions in activation space, especially directions that are semantically interpretable (a logistic regression axis for morality) and capture high variance (top principal components/PCs). However, their experiments used **one axis-based label** at a time, typically derived from a single layer (Appendix B.10 combines LR readouts across layers into a single label).
 
 In this work, we give the model **multiple axis-based labels** per example and ask:
 
-1. **Within a layer:** Can the model report and control activations along two axes from the same layer independently?
+1. **Within a layer:** Can the model report and control activations along two distinct axes within the same layer with performance comparable to using each axis individually?
 
-2. **Across layers:** Can the model report and control activations along the same axis type at two depths (e.g., the LR axis at an early layer and a later layer) independently?
+2. **Across layers:** Can the model report and control activations along axes of the same type at different layers with performance comparable to using each axis individually?
 
 We found that the model can report labels derived from [distinct axes within the same layer](#fig-reporting-within) or from [axes of the same type across different layers](#fig-reporting-across) with performance comparable to reporting each label individually. We also found that the model could control its activations along [two distinct axes within the same layer](#control-task-within-layer) with performance comparable to single-axis control under some instructions, but showed reduced control performance when controlling [axes of the same type across different layers](#fig-control-across).
 
@@ -34,7 +34,7 @@ We found that the model can report labels derived from [distinct axes within the
 
 **Model:** [Llama-3.2-3B-Instruct](https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct). 
 
-**Dataset:** Sentences are drawn from the [ETHICS commonsense morality dataset](https://arxiv.org/abs/2008.02275) (short scenarios only, $n=7,544$ sentences, each with a binary morality label: 0 = acceptable, 1 = unacceptable). 60% of the sentences are allocated as training data for fitting axe and the remaining 40% of the sentences are held out for the reporting and control tasks. 
+**Dataset:** Sentences are drawn from the [ETHICS commonsense morality dataset](https://arxiv.org/abs/2008.02275) (short scenarios only, $n=7,544$ sentences, each with a binary morality label: 0 = acceptable, 1 = unacceptable). 60% of the sentences are allocated as training data for fitting axes and the remaining 40% of the sentences are held out for the reporting and control tasks. 
 
 ### Identifying Axes 
 
@@ -46,7 +46,7 @@ user:   Say something.
 assistant: <sentence>   ← pre-filled
 ```
 
-For each layer of interest, we extract the activation vector $\mathbf{x}_i \in \mathbb{R}^{d}$ ($d = 3072$ for our selected model) for the sentence $\mathcal{S}_i$ by taking the residual stream output of that layer.
+For each layer of interest, we extract an activation vector $\mathbf{x}_i \in \mathbb{R}^{d}$ by averaging the residual-stream activations at the output of that layer across the sentence's tokens, where $d = 3072$ for the selected model.
 
 **Axis Fitting.** For each layer of interest, we fit two types of axes on the activations observed for the training data:
 
@@ -90,12 +90,14 @@ Assistant: <sentence> [Score X: {0 or 1}, Score Y: {0 or 1}]
 
 Two additional counterbalanced label assignments are applied to every draw in a trial:
 
-- **Reversing Label order (two-axes setting only)**: each trial is also run with Score Y written before Score X in every example. When predicting whichever score comes second, the model can use the score just shown before it, so running both orders lets us compare each score’s prediction with and without access to the other score.
+- **Reversing label order (two-axes setting only)**: each trial is also run with Score Y written before Score X in every example. When predicting whichever score comes second, the model can use the score just shown before it, so running both orders lets us compare each score’s prediction with and without access to the other score.
 - **Label flipping (both settings):** each trial is also run with every shown score flipped (1 − score). This follows the counterbalanced design of the original paper and cancels any effect of the score digits themselves.
 
 For each task condition, we generate 100 trials, each consisting of 200 sampled sentences from the held-out set. Each trial yields two prompts in the single-axis setting (two flips) and four prompts in the two-axis setting (two score orderings × two flips).
 
 Although all labels appear in the prompt, the model's prediction for each label is read from the next-token logits at the position immediately before that label's digit: P("1") is the softmax over the logits of the tokens "0" and "1". Each prediction is based only on the preceding context, without access to that label or anything after it, so a prediction at the $t$-th example reflects $t-1$ in-context examples before it. All predictions for a prompt are read from a single forward pass.
+
+As a baseline, we also estimate the probability of each target label using only the other axis-based label of the same sentence, with conditional probabilities estimated from preceding labeled examples using Laplace smoothing.
 
 ### Control Task
 
@@ -119,7 +121,7 @@ Assistant: ← model generates here
 
 In the two-axes setting, the final instruction specifies both target scores to imitate, e.g. `Score X: 1, Score Y: 0`.
 
-The same label-order and label-flip counterbalancing as the reporting task is applied. For each task condition, we generate 100 trials, each consisting of 200 sampled sentences from the held-out set. Each trial therefore yields two prompts in the single-axis setting (two flips) and four prompts in the two-axis setting (two score orderings × two flips).
+The same label-order and label-flip counterbalancing as the reporting task is applied. For each task condition, we generate 100 trials, each consisting of 200 sampled sentences from the held-out set. For each trial, we evaluate all target-score combinations under both label flips and, in the two-axis setting, both score orderings. This yields four prompts per trial in the single-axis setting (2 target scores × 2 flips) and 16 prompts per trial in the two-axis setting (4 target-score combinations × 2 orderings × 2 flips), evaluated separately for explicit and implicit control.
 
 For the control task, we test two modes, which differ only in where the reply comes from:
 - **Explicit control:** the model generates its own reply, and the activations of that reply are read afterward.
@@ -144,7 +146,7 @@ We report results for the reporting task and then the control task, each for the
 
 ### Reporting Task: Within-layer
 
-In the within-layer reporting task, reporting performance was similar between the single-axis ([Fig. 1](#fig-reporting-within), blue line) and two-axis settings, whether the target score was reported first ([Fig. 1](#fig-reporting-within), orange line) or second ([Fig. 1](#fig-reporting-within), green dashed line). Predicting the target score from the other axis-based label alone ([Fig. 1](#fig-reporting-within), gray dotted line) yielded near-chance accuracy, consistent with the underlying PC projections being uncorrelated. Across these settings, accuracy increased and cross-entropy decreased with more labeled examples, consistent with the original study. Reporting performance across all settings were also higher for PC1 (left) than PC2 (right), again consistent with the original study. Taken together, these results suggest that the model can report two axis-based labels derived from distinct axes within the same layer with performance comparable to reporting each axis-based label individually.
+In the within-layer reporting task, reporting performance was similar between the single-axis ([Fig. 1](#fig-reporting-within), blue line) and two-axis settings, whether the target score was reported first ([Fig. 1](#fig-reporting-within), orange line) or second ([Fig. 1](#fig-reporting-within), green dashed line). Predicting the target score from the other axis-based label alone ([Fig. 1](#fig-reporting-within), gray dotted line) yielded near-chance accuracy, consistent with the underlying PC projections being uncorrelated. Across these settings, accuracy increased and cross-entropy decreased with more labeled examples, consistent with the original study. Reporting performance across all settings was also higher for PC1 (left) than PC2 (right), again consistent with the original study. Taken together, these results suggest that the model can report two axis-based labels derived from distinct axes within the same layer with performance comparable to reporting each axis-based label individually.
 
 <a id="fig-reporting-within"></a>
 ![Reporting task results for L13 PC1 and PC2](figures/reporting_L13_PC1+PC2.png)
@@ -152,11 +154,11 @@ In the within-layer reporting task, reporting performance was similar between th
 
 ### Reporting Task: Across-layer
 
-In the across-layer reporting task, reporting performance was similar between the single-axis ([Fig. 2](#fig-reporting-across), blue line) and two-axis settings, although accuracy was slightly higher and cross-entropy lower when the target score was reported second ([Fig. 2](#fig-reporting-across), green dashed line) rather than first ([Fig. 2](#fig-reporting-across), orange line). Predicting the target score from the other axis-based label alone ([Fig. 2](#fig-reporting-across), gray dotted line) yielded accuracy comparable to the single-axis and two-axis settings, with similarly low or lower cross-entropy. This suggests that the axis-based labels are highly predictive of one another, consistent with strong correlations seen between residual stream activations across layers. Across these settings, accuracy increased and cross-entropy decreased with more labeled examples. Reporting performance also was similar for layer 6 (left) and layer 20 (right). Taken together, these results suggest that the model can report labels derived from axes of the same type across different layers with performance comparable to reporting each label individually.
+In the across-layer reporting task, reporting performance was similar between the single-axis ([Fig. 2](#fig-reporting-across), blue line) and two-axis settings, although accuracy was slightly higher and cross-entropy lower when the target score was reported second ([Fig. 2](#fig-reporting-across), green dashed line) rather than first ([Fig. 2](#fig-reporting-across), orange line). Predicting the target score from the other axis-based label alone ([Fig. 2](#fig-reporting-across), gray dotted line) yielded accuracy comparable to the single-axis and two-axis settings, with similarly low or lower cross-entropy. This suggests that the axis-based labels are highly predictive of one another, consistent with the strong correlation between LR-axis projections across layers. Across these settings, accuracy increased and cross-entropy decreased with more labeled examples. Reporting performance also was similar for layer 6 (left) and layer 20 (right). Taken together, these results suggest that the model can report labels derived from axes of the same type across different layers with performance comparable to reporting each label individually.
 
 <a id="fig-reporting-across"></a>
 ![Reporting task results for L6 LR and L20 LR](figures/reporting_LR_L6+L20.png)
-<em><b>Figure 2. Across-layer reporting performance is similar in the single-axis and two-axes settings. </b> Each column shows reporting performance for a target score derived from layer 6 LR (left) or layer 20 LR (right). Mean accuracy (top) and cross-entropy (bottom) are plotted against the number of preceding labeled examples.  Curves show the single-axis setting (blue), the two-axis setting with the target score reported first (orange) or second (green, dashed), prediction of the target score from the other axis-based label alone (gray, dotted), and chance performance (gray, solid). Bands indicate ±1 SEM across 200 prompts (100 trials × 2 flips per curve)</em>
+<em><b>Fig. 2. Across-layer reporting performance is similar in the single-axis and two-axes settings. </b> Each column shows reporting performance for a target score derived from layer 6 LR (left) or layer 20 LR (right). Mean accuracy (top) and cross-entropy (bottom) are plotted against the number of preceding labeled examples.  Curves show the single-axis setting (blue), the two-axis setting with the target score reported first (orange) or second (green, dashed), prediction of the target score from the other axis-based label alone (gray, dotted), and chance performance (gray, solid). Bands indicate ±1 SEM across 200 prompts (100 trials × 2 flips per curve)</em>
 
 ### Control Task: Within-Layer
 

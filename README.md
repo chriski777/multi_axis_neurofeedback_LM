@@ -5,11 +5,11 @@ by **[Chris Ki](https://chriski.me)**
 
 ## Overview
 
-This repository extends Ji-An et al. (2025), *Language Models Are Capable of Metacognitive Monitoring and Control of Their Internal Activations* ([arXiv:2505.13763](https://arxiv.org/abs/2505.13763)), to test whether LLMs can report and control their activations along **multiple axes at once**.
+This repository extends Ji-An et al. (2025), ([*Language Models Are Capable of Metacognitive Monitoring and Control of Their Internal Activations*](https://proceedings.neurips.cc/paper_files/paper/2025/file/56a225639da77e8f7c0409f6d5ba996b-Paper-Conference.pdf?ref=gatodo.com)), to test whether LLMs can report and control their activations along **multiple axes simultaneously**.
 
-Ji-An et al. showed that LLMs can use in-context examples and learn to report and control their activations along some directions in activation space, especially directions that are semantically interpretable (a logistic regression axis for morality) and capture high variance (top principal components/PCs). However, every experiment gave the model labels based on only **one axis at a time**, usually defined at a single layer (Appendix B.10 combines LR readouts across layers, but still into a single label).
+Ji-An et al. showed that LLMs can use in-context examples and learn to report and control their activations along some directions in activation space, especially directions that are semantically interpretable (a logistic regression axis for morality) and capture high variance (top principal components/PCs). However, their experiments used **one axis-based label** at a time, typically derived from a single layer (Appendix B.10 combines LR readouts across layers into a single label).
 
-In this work, we give the model **multiple neurofeedback labels** per example and ask:
+In this work, we give the model **multiple axis-based labels** per example and ask:
 
 1. **Within a layer:** Can the model report and control activations along two axes from the same layer independently?
 
@@ -158,6 +158,15 @@ In the across-layer reporting task, reporting performance was similar between th
 <em><b>Figure 2. Across-layer reporting performance is similar in the single-axis and two-axes settings. </b> Each column shows reporting performance for a target score derived from layer 6 LR (left) or layer 20 LR (right). Mean accuracy (top) and cross-entropy (bottom) are plotted against the number of preceding labeled examples.  Curves show the single-axis setting (blue), the two-axis setting with the target score reported first (orange) or second (green, dashed), prediction of the target score from the other axis-based label alone (gray, dotted), and chance performance (gray, solid). Bands indicate ±1 SEM across 200 prompts (100 trials × 2 flips per curve)</em>
 
 ### Control Task: Within-Layer
-The same sentence is used for every prompt in a trial (all targets, score flips and score orders). Because the words are identical across score targets, any shift toward the target scores must come from the model representing the same sentence differently.
+
+In the within-layer control task,
+
+<a id="fig-control-within"></a>
+![Control task results for L13 PC1 and PC2](figures/control_d_L13_PC1+PC2.png)
+<em><b>Fig. 3. Within-layer control p. </b> </em>
 
 ### Control Task: Across-Layer
+
+<a id="fig-control-across"></a>
+![Control task results for L6 LR and L20 LR](figures/control_d_LR_L6+L20.png)
+<em><b>Fig. 4. Across-layer control p. </b> </em>

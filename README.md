@@ -11,9 +11,9 @@ Ji-An et al. showed that LLMs can use in-context examples and learn to report an
 
 In this work, we give the model **multiple axis-based labels** per example and ask:
 
-1. **Within a layer:** Can the model report and control activations along two distinct axes within the same layer with performance comparable to using each axis individually?
+1. **Within a layer:**  Can the model report and control activations along two distinct axes within the same layer with performance comparable to the single-axis setting?
 
-2. **Across layers:** Can the model report and control activations along axes of the same type at different layers with performance comparable to using each axis individually?
+2. **Across layers:** Can the model report and control activations along axes of the same type at different layers with performance comparable to the single-axis setting?
 
 We found that the model can report labels derived from [distinct axes within the same layer](#fig-reporting-within) or from [axes of the same type across different layers](#fig-reporting-across) with performance comparable to reporting each label individually. We also found that the model could control its activations along [two distinct axes within the same layer](#control-task-within-layer) with performance comparable to single-axis control under some instructions, but showed reduced control performance when controlling [axes of the same type across different layers](#fig-control-across).
 
@@ -137,8 +137,8 @@ For the reporting and control tasks, we test six conditions. All conditions use 
 
 **Two-axes setting (two conditions):** Here, we try to answer the original questions we posed on whether neurofeedback can be used to control activations along multiple axes. 
 
-1. **Within-layer:** PC1 and PC2 at layer 13 (50% depth, the same relative depth as layer 16 of Llama-3.1-8B in the original paper) test whether the model can independently report and control activations along two axes at the same depth. Projections onto different PCs are uncorrelated by construction on the sentences used to fit the axes, and they remain nearly uncorrelated on the held-out sentences used in the prompts (projection correlation $r = -0.01$, label correlation $\phi = 0.04$).
-2. **Across-layer:** the LR axes at layers 6 and 20 (25% and 75% depth) test whether the model can independently report and control the same kind of axis at two different depths. Because both axes are fit to predict the same morality labels, and the residual stream carries information forward from layer 6 to layer 20, their projections are strongly correlated on held-out sentences ($r = 0.81$, $\phi = 0.65$).
+1. **Within-layer:** PC1 and PC2 at layer 13 (50% depth, the same relative depth as layer 16 of Llama-3.1-8B in the original paper) test whether the model can report and control activations along two axes at the same depth. Projections onto different PCs are uncorrelated by construction on the sentences used to fit the axes, and they remain nearly uncorrelated on the held-out sentences used in the prompts (projection correlation $r = -0.01$, label correlation $\phi = 0.04$).
+2. **Across-layer:** the LR axes at layers 6 and 20 (25% and 75% depth) test whether the model can report and control the same kind of axis at two different depths. Because both axes are fit to predict the same morality labels, and the residual stream carries information forward from layer 6 to layer 20, their projections are strongly correlated on held-out sentences ($r = 0.81$, $\phi = 0.65$).
 
 ## Results
 

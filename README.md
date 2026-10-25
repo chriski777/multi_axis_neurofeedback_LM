@@ -5,9 +5,9 @@ by **[Chris Ki](https://chriski.me)**
 
 ## Overview
 
-This repository extends Li et al. (2025), *[Language Models Are Capable of Metacognitive Monitoring and Control of Their Internal Activations](https://proceedings.neurips.cc/paper_files/paper/2025/file/56a225639da77e8f7c0409f6d5ba996b-Paper-Conference.pdf)* (NeurIPS 2025), to test whether LLMs can report and control their activations along **multiple axes simultaneously**..
+This repository extends Li et al. (2025), *[Language Models Are Capable of Metacognitive Monitoring and Control of Their Internal Activations](https://proceedings.neurips.cc/paper_files/paper/2025/file/56a225639da77e8f7c0409f6d5ba996b-Paper-Conference.pdf)* (NeurIPS 2025), to test whether LLMs can report and control their activations along **multiple axes simultaneously**.
 
-Ji-An et al. showed that LLMs can use in-context examples and learn to report and control their activations along some directions in activation space, especially directions that are semantically interpretable (a logistic regression axis for morality) and capture high variance (top principal components/PCs). However, their experiments used **one axis-based label** at a time, typically derived from a single layer (Appendix B.10 combines LR readouts across layers into a single label).
+Li et al. showed that LLMs can use in-context examples and learn to report and control their activations along some directions in activation space, especially directions that are semantically interpretable (a logistic regression axis for morality) and capture high variance (top principal components/PCs). However, their experiments used **one axis-based label** at a time, typically derived from a single layer (Appendix B.10 combines LR readouts across layers into a single label).
 
 In this work, we give the model **multiple axis-based labels** per example and ask:
 
@@ -50,7 +50,7 @@ For each layer of interest, we extract an activation vector $\mathbf{x}_i \in \m
 
 **Axis Fitting.** For each layer of interest, we fit two types of axes on the activations observed for the training data:
 
-- **Logistic Regression (LR) axis** — the decision boundary of a logistic regression classifier trained to predict the morality label.
+- **Logistic Regression (LR) axis** — the weight vector of a logistic regression classifier trained to predict the morality label.
 - **PC axes** — individual principal components (PC1, PC2, …) from a PCA fit on the training data.
 
 Binary axis-based labels (0/1) are assigned using each sentence's activation vector $\mathbf{x}_i$:
@@ -66,9 +66,9 @@ For the selected model ([Llama-3.2-3B-Instruct](https://huggingface.co/meta-llam
 Each trial draws 200 held-out sentences at random (the same draws are used for every task condition, see below) and builds a prompt in which each sentence is an in-context example paired with one or more axis-based labels (0 or 1). We consider two settings:
 
 1. **Single-axis setting:** each sentence is paired with one binary label derived from one axis.
-2. **Two-axes setting:** each sentence is paired with two binary labels, Score X and Score Y, each derived from a different axis.
+2. **two-axis setting:** each sentence is paired with two binary labels, Score X and Score Y, each derived from a different axis.
 
-At the beginning of each prompt, we include a system message adapted from the original authors' `meta_prompts.yml`, which describes axis-based labels as binary "scores" (0 or 1). In the two-axes setting, it is modified to describe two scores. The prompt follows the structure below for the single-axis setting:
+At the beginning of each prompt, we include a system message adapted from the original authors' `meta_prompts.yml`, which describes axis-based labels as binary "scores" (0 or 1). In the two-axis setting, it is modified to describe two scores. The prompt follows the structure below for the single-axis setting:
 
 ```
 <system message>
@@ -82,7 +82,7 @@ User: Say something.
 Assistant: She donated all her savings to charity. [Score: 1]
 ```
 
-In the two-axes setting, each example instead ends with both labels:
+In the two-axis setting, each example instead ends with both labels:
 ```
 User: Say something.
 Assistant: <sentence> [Score X: {0 or 1}, Score Y: {0 or 1}]
@@ -90,8 +90,8 @@ Assistant: <sentence> [Score X: {0 or 1}, Score Y: {0 or 1}]
 
 Two additional counterbalanced label assignments are applied to every draw in a trial:
 
-- **Reversing label order (two-axes setting only)**: each trial is also run with Score Y written before Score X in every example. When predicting whichever score comes second, the model can use the score just shown before it, so running both orders lets us compare each score’s prediction with and without access to the other score.
-- **Label flipping (both settings):** each trial is also run with every shown score flipped (1 − score). This follows the counterbalanced design of the original paper and cancels any effect of the score digits themselves.
+- **Reversing label order (two-axis setting only)**: each trial is also run with Score Y written before Score X in every example. When predicting whichever score comes second, the model can use the score just shown before it, so running both orders lets us compare each score’s prediction with and without access to the other score.
+- **Label flipping (both settings):** each trial is also run with every shown score flipped (1 − score). This follows the counterbalanced design of the original paper and helps account for potential effects of the numerical label assignments.
 
 For each task condition, we generate 100 trials, each consisting of 200 sampled sentences from the held-out set. Each trial yields two prompts in the single-axis setting (two flips) and four prompts in the two-axis setting (two score orderings × two flips).
 
@@ -101,7 +101,7 @@ As a baseline, we also estimate the probability of each target label using only 
 
 ### Control Task
 
-Each trial draws 200 held-out sentences at random (independently from the [reporting task](#reporting-task) draws) and builds a prompt in the same format as the reporting task, followed by a final user turn that specifies a **target score** and instructs the model to generate a sentence that imitates the target score. We consider the same two settings (single-axis and two-axes).
+Each trial draws 200 held-out sentences at random (independently from the [reporting task](#reporting-task) draws) and builds a prompt in the same format as the reporting task, followed by a final user turn that specifies a **target score** and instructs the model to generate a sentence that imitates the target score. We consider the same two settings (single-axis and two-axis).
 
 The prompt follows the structure below for the single-axis setting:
 ```
@@ -119,7 +119,7 @@ User: <instruction to produce a sentence with Score: {target}> Say something.
 Assistant: ← model generates here
 ```
 
-In the two-axes setting, the final instruction specifies both target scores to imitate, e.g. `Score X: 1, Score Y: 0`.
+In the two-axis setting, the final instruction specifies both target scores to imitate, e.g. `Score X: 1, Score Y: 0`.
 
 The same label-order and label-flip counterbalancing as the reporting task is applied. For each task condition, we generate 100 trials, each consisting of 200 sampled sentences from the held-out set. For each trial, we evaluate all target-score combinations under both label flips and, in the two-axis setting, both score orderings. This yields four prompts per trial in the single-axis setting (2 target scores × 2 flips) and 16 prompts per trial in the two-axis setting (4 target-score combinations × 2 orderings × 2 flips), evaluated separately for explicit and implicit control.
 
@@ -135,7 +135,7 @@ For the reporting and control tasks, we test six conditions. All conditions use 
 
 **Single-axis setting (four conditions):** L13 PC1, L13 PC2, L6 LR and L20 LR, i.e. each axis on its own. These check that we reproduce the original single-axis results for these axes and give a baseline for how well each axis is reported and controlled alone.
 
-**Two-axes setting (two conditions):** Here, we try to answer the original questions we posed on whether neurofeedback can be used to control activations along multiple axes. 
+**two-axis setting (two conditions):** Here, we try to answer the original questions we posed on whether neurofeedback can be used to control activations along multiple axes. 
 
 1. **Within-layer:** PC1 and PC2 at layer 13 (50% depth, the same relative depth as layer 16 of Llama-3.1-8B in the original paper) test whether the model can report and control activations along two axes at the same depth. Projections onto different PCs are uncorrelated by construction on the sentences used to fit the axes, and they remain nearly uncorrelated on the held-out sentences used in the prompts (projection correlation $r = -0.01$, label correlation $\phi = 0.04$).
 2. **Across-layer:** the LR axes at layers 6 and 20 (25% and 75% depth) test whether the model can report and control the same kind of axis at two different depths. Because both axes are fit to predict the same morality labels, and the residual stream carries information forward from layer 6 to layer 20, their projections are strongly correlated on held-out sentences ($r = 0.81$, $\phi = 0.65$).
@@ -150,7 +150,7 @@ In the within-layer reporting task, reporting performance was similar between th
 
 <a id="fig-reporting-within"></a>
 ![Reporting task results for L13 PC1 and PC2](figures/reporting_L13_PC1+PC2.png)
-<em><b>Fig. 1. Within-layer reporting performance is similar in the single-axis and two-axes settings. </b> Each column shows reporting performance for a target score derived from layer 13 PC1 (left) or PC2 (right). Mean accuracy (top) and cross-entropy (bottom) are plotted against the number of preceding labeled examples. Curves show the single-axis setting (blue), the two-axis setting with the target score reported first (orange) or second (green, dashed), prediction of the target score from the other axis-based label alone (gray, dotted), and chance performance (gray, solid). Bands indicate ±1 SEM across 200 prompts (100 trials × 2 flips per curve).</em>
+<em><b>Fig. 1. Within-layer reporting performance is similar in the single-axis and two-axis settings. </b> Each column shows reporting performance for a target score derived from layer 13 PC1 (left) or PC2 (right). Mean accuracy (top) and cross-entropy (bottom) are plotted against the number of preceding labeled examples. Curves show the single-axis setting (blue), the two-axis setting with the target score reported first (orange) or second (green, dashed), prediction of the target score from the other axis-based label alone (gray, dotted), and chance performance (gray, solid). Bands indicate ±1 SEM across 200 prompts (100 trials × 2 flips per curve).</em>
 
 ### Reporting Task: Across-layer
 
@@ -158,7 +158,7 @@ In the across-layer reporting task, reporting performance was similar between th
 
 <a id="fig-reporting-across"></a>
 ![Reporting task results for L6 LR and L20 LR](figures/reporting_LR_L6+L20.png)
-<em><b>Fig. 2. Across-layer reporting performance is similar in the single-axis and two-axes settings. </b> Each column shows reporting performance for a target score derived from layer 6 LR (left) or layer 20 LR (right). Mean accuracy (top) and cross-entropy (bottom) are plotted against the number of preceding labeled examples.  Curves show the single-axis setting (blue), the two-axis setting with the target score reported first (orange) or second (green, dashed), prediction of the target score from the other axis-based label alone (gray, dotted), and chance performance (gray, solid). Bands indicate ±1 SEM across 200 prompts (100 trials × 2 flips per curve)</em>
+<em><b>Fig. 2. Across-layer reporting performance is similar in the single-axis and two-axis settings. </b> Each column shows reporting performance for a target score derived from layer 6 LR (left) or layer 20 LR (right). Mean accuracy (top) and cross-entropy (bottom) are plotted against the number of preceding labeled examples.  Curves show the single-axis setting (blue), the two-axis setting with the target score reported first (orange) or second (green, dashed), prediction of the target score from the other axis-based label alone (gray, dotted), and chance performance (gray, solid). Bands indicate ±1 SEM across 200 prompts (100 trials × 2 flips per curve)</em>
 
 ### Control Task: Within-Layer
 
@@ -170,7 +170,7 @@ In the within-layer control task, explicit control performance varied between th
 
 ### Control Task: Across-Layer
 
-In the across-layer control task, explicit control performance was lower in the two-axes setting (Fig. 4, orange and green bars) than in the single-axis setting (Fig. 4, blue bars) for both layer 6 and layer 20 LR axes ([Fig. 4](#fig-control-across), top row). This reduction was observed regardless of whether the target axis was instructed first (solid bars) or second (hatched bars), or whether the other axis was instructed to imitate 0 (orange) or 1 (green). Implicit control performance was substantially weaker than explicit control across both settings ([Fig. 4](#fig-control-across), bottom row), particularly at layer 6, where control effects were near zero. This is consistent with the original study, which found that implicit control effects were especially weak in earlier layers. Taken together, these results suggest that the model's ability to control activations along LR axes across different layers is reduced when instructed to control both axes simultaneously, particularly during explicit control.
+In the across-layer control task, explicit control performance was lower in the two-axis setting (Fig. 4, orange and green bars) than in the single-axis setting (Fig. 4, blue bars) for both layer 6 and layer 20 LR axes ([Fig. 4](#fig-control-across), top row). This reduction was observed regardless of whether the target axis was instructed first (solid bars) or second (hatched bars), or whether the other axis was instructed to imitate 0 (orange) or 1 (green). Implicit control performance was substantially weaker than explicit control across both settings ([Fig. 4](#fig-control-across), bottom row), particularly at layer 6, where control effects were near zero. This is consistent with the original study, which found that implicit control effects were especially weak in earlier layers. Taken together, these results suggest that the model's ability to control activations along LR axes across different layers is reduced when instructed to control both axes simultaneously, particularly during explicit control.
 
 <a id="fig-control-across"></a>
 ![Control task results for L6 LR and L20 LR](figures/control_d_LR_L6+L20.png)

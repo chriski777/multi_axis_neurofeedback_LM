@@ -15,6 +15,8 @@ In this work, we give the model **multiple axis-based labels** per example and a
 
 2. **Across layers:** Can the model report and control activations along axes of the same type at different layers with performance comparable to the single-axis setting?
 
+These questions are especially relevant to AI safety. Li et al. propose monitoring models with an ensemble of safety detectors trained on different activation subspaces, based on a hypothesis that models may struggle to control activations along multiple subspaces at once. If a model can control two axes in the same layer simultaneously, this defense may be weaker than hoped. Also, if it can break the correlation between the same axis at two layers, a safety detector at one layer could be evaded while harmful information reemerges at another.
+
 We found that the model can report labels derived from [distinct axes within the same layer](#fig-reporting-within) or from [axes of the same type across different layers](#fig-reporting-across) with performance comparable to reporting each label individually. We also found that the model could control its activations along [two distinct axes within the same layer](#control-task-within-layer) with performance comparable to single-axis control under some instructions, but showed reduced control performance when controlling [axes of the same type across different layers](#fig-control-across).
 
 ## Table of Contents

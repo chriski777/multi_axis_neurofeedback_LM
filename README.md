@@ -17,7 +17,7 @@ In this work, we give the model **multiple axis-based labels** per example and a
 
 These questions are especially relevant to AI safety. Li et al. propose monitoring models with an ensemble of safety detectors trained on different activation subspaces, based on a hypothesis that models may struggle to control activations along multiple subspaces at once. If a model can control two axes in the same layer simultaneously, this defense may be weaker than hoped. Also, if it can break the correlation between the same axis at two layers, a safety detector at one layer could be evaded while harmful information reemerges at another.
 
-We found that the model can report labels derived from [distinct axes within the same layer](#fig-reporting-within) or from [axes of the same type across different layers](#fig-reporting-across) with performance comparable to reporting each label individually. We also found that the model could control its activations along [two distinct axes within the same layer](#control-task-within-layer) with performance comparable to single-axis control under some instructions, but showed reduced control performance when controlling [axes of the same type across different layers](#fig-control-across).
+We found that the model can report labels derived from [distinct axes within the same layer](#fig-reporting-within) or from [axes of the same type across different layers](#fig-reporting-across) with performance comparable to reporting each label individually. We also found that the model could control its activations along [two distinct axes within the same layer](#control-task-within-layer) with performance comparable to single-axis control under some instructions, but showed reduced control performance when controlling [axes of the same type across different layers](#fig-control-across). For AI safety, these results suggest that ensembles of detectors on different subspaces of the same layer may be partially evadable, while detectors at multiple depths may be more robust.
 
 ## Table of Contents
 
@@ -177,3 +177,7 @@ In the across-layer control task, explicit control performance was lower in the 
 <a id="fig-control-across"></a>
 ![Control task results for L6 LR and L20 LR](figures/control_d_LR_L6+L20.png)
 <em><b>Fig. 4. Across-layer control performance is lower in the two-axis setting than in the single-axis setting. </b> Each column of subplots shows control performance for a target axis derived from layer 6 LR (left) or layer 20 LR (right). Bars show Cohen's d between activation projections when the target axis is instructed to imitate 1 versus 0, for explicit (top) and implicit (bottom) control. Bars represent the single-axis setting (blue) and the two-axis setting with the other axis instructed to imitate 0 (orange) or 1 (green). In the two-axis setting, solid bars indicate that the target axis is instructed first, while hatched bars indicate that it is instructed second. Error bars indicate 95% confidence intervals.  </em>
+
+### AI Use
+
+Claude and ChatGPT were used to help write plotting code and edit this README. The experimental design, analyses, and conclusions are the author’s.

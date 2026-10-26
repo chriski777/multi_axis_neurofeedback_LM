@@ -178,6 +178,15 @@ In the across-layer control task, explicit control performance was lower in the 
 ![Control task results for L6 LR and L20 LR](figures/control_d_LR_L6+L20.png)
 <em><b>Fig. 4. Across-layer control performance is lower in the two-axis setting than in the single-axis setting. </b> Each column of subplots shows control performance for a target axis derived from layer 6 LR (left) or layer 20 LR (right). Bars show Cohen's d between activation projections when the target axis is instructed to imitate 1 versus 0, for explicit (top) and implicit (bottom) control. Bars represent the single-axis setting (blue) and the two-axis setting with the other axis instructed to imitate 0 (orange) or 1 (green). In the two-axis setting, solid bars indicate that the target axis is instructed first, while hatched bars indicate that it is instructed second. Error bars indicate 95% confidence intervals.  </em>
 
+### Reproducing the results
+
+All experiments are in `llm_neurofeedback.ipynb`, which can be opened in Colab. The notebook is stored without outputs and the figures in this README show the results. Running it requires:
+
+1. A GPU. Experiments were run on an A100.
+2. A Hugging Face token with access to Llama-3.2-3B-Instruct, stored as `HF_TOKEN` in Colab secrets.
+3. Google Drive (optional), used to save activations and results so a disconnected session can resume.
+
+
 ### AI Use
 
 Claude and ChatGPT were used to help write plotting code and edit this README. The experimental design, analyses, and conclusions are the author’s.
